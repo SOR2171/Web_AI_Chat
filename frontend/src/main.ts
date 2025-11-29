@@ -1,8 +1,9 @@
 import {createApp} from 'vue'
-import App from './/src/App.vue'
-import router from ".//src/router/index.ts";
+import App from './App.vue'
+import router from "./router/index.ts";
 import axios from "axios";
-import 'element-plus/theme-chalk/dark/css-vars.css'
+import 'element-plus/dist/index.css';
+import 'element-plus/theme-chalk/dark/css-vars.css';
 
 axios.defaults.baseURL = 'http://localhost:8080'
 

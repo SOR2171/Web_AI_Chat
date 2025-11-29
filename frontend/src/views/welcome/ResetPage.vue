@@ -1,15 +1,15 @@
 <script setup lang="ts">
 import {reactive, ref} from "vue";
 import {Bell, Lock, Message} from "@element-plus/icons-vue";
-import {get, post} from ".//src/net";
+import {get, post} from "../../api";
 import {ElMessage} from "element-plus";
-import router from ".//src/router/index.js";
+import router from "../../router/index.js";
 
 const activeStep = ref(0);
 const coldTime = ref(0);
 const formRef = ref()
 const isCounting = ref(false)
-let timer = null
+let timer: number | null = null;
 
 const form = reactive({
   password: '',
@@ -33,15 +33,15 @@ const startColdTime = () => {
   }, 1000)
 }
 
-const validatePasswordRepeat = (rule, value, callback) => {
-  if (value === '') {
-    callback(new Error('Please repeat password'));
+const validatePasswordRepeat = (value: string, callback: (err?: Error) => void): void => {
+  if (value === "") {
+    callback(new Error("Please repeat password"));
   } else if (value !== form.password) {
-    callback(new Error('Passwords do not match'));
+    callback(new Error("Passwords do not match"));
   } else {
     callback();
   }
-}
+};
 
 const rule = {
   password: [

@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import {reactive, ref} from "vue";
 import {Bell, Lock, Message, User} from "@element-plus/icons-vue";
-import router from ".//src/router/index.js";
-import {get, post} from ".//src/net";
+import router from "../../router/index.js";
+import {get, post} from "../../api";
 import {ElMessage} from "element-plus";
 
 const coldTime = ref(0);
 const formRef = ref()
 const isCounting = ref(false)
-let timer = null
+let timer: number | null = null;
 
 const form = reactive({
   username: '',
@@ -18,97 +18,99 @@ const form = reactive({
   code: ''
 })
 
-const startColdTime = () => {
-  isCounting.value = true
-  coldTime.value = 60
+const startColdTime = (): void => {
+  isCounting.value = true;
+  coldTime.value = 60;
 
   timer = setInterval(() => {
-    coldTime.value--
+    coldTime.value--;
     if (coldTime.value <= 0) {
-      clearInterval(timer)
-      timer = null
-      isCounting.value = false
-      coldTime.value = 0
+      if (timer) {
+        clearInterval(timer);
+      }
+      timer = null;
+      isCounting.value = false;
+      coldTime.value = 0;
     }
-  }, 1000)
-}
+  }, 1000);
+};
 
-const validateUsername = (rule, value, callback) => {
-  if (value === '') {
-    callback(new Error('Please input username'));
+const validateUsername = (value: string, callback: (err?: Error) => void): void => {
+  if (value === "") {
+    callback(new Error("Please input username"));
   } else if (!/^[a-zA-Z0-9\u4e00-\u9fa5]+$/.test(value)) {
-    callback(new Error('Only letters, numbers, or Chinese characters'));
+    callback(new Error("Only letters, numbers, or Chinese characters"));
   } else {
     callback();
   }
-}
+};
 
-const validatePasswordRepeat = (rule, value, callback) => {
-  if (value === '') {
-    callback(new Error('Please repeat password'));
+const validatePasswordRepeat = (value: string, callback: (err?: Error) => void): void => {
+  if (value === "") {
+    callback(new Error("Please repeat password"));
   } else if (value !== form.password) {
-    callback(new Error('Passwords do not match'));
+    callback(new Error("Passwords do not match"));
   } else {
     callback();
   }
-}
+};
+
 
 const rule = {
   username: [
-    { validator: validateUsername, trigger: ['blur', 'change'] },
-    { min: 4, max: 16, message: 'Length should be 4 to 16', trigger: 'blur' }
+    {validator: validateUsername, trigger: ['blur', 'change']},
+    {min: 4, max: 16, message: 'Length should be 4 to 16', trigger: 'blur'}
   ],
   password: [
-    { required: true, message: 'Please input password', trigger: 'blur' },
-    { min: 6, max: 20, message: 'Length should be 6 to 20', trigger: ['blur', 'change'] }
+    {required: true, message: 'Please input password', trigger: 'blur'},
+    {min: 6, max: 20, message: 'Length should be 6 to 20', trigger: ['blur', 'change']}
   ],
   passwordRepeat: [
-    { validator: validatePasswordRepeat, trigger: ['blur', 'change'] },
+    {validator: validatePasswordRepeat, trigger: ['blur', 'change']},
   ],
   email: [
-    { required: true, message: 'Please input email', trigger: 'blur' },
-    { type: 'email', message: 'Please input a valid email', trigger: ['blur', 'change'] }
+    {required: true, message: 'Please input email', trigger: 'blur'},
+    {type: 'email', message: 'Please input a valid email', trigger: ['blur', 'change']}
   ],
   code: [
-    { required: true, message: 'Please input verification code', trigger: 'blur' }
+    {required: true, message: 'Please input verification code', trigger: 'blur'}
   ]
 }
 
-function askCode() {
+function askCode(): void {
   get(
       `/api/auth/ask-code?email=${form.email}&type=register`,
-      (response) => {
+      (response: unknown) => {
         coldTime.value = 60;
         startColdTime();
         ElMessage.success(`Verification code sent to ${form.email}`);
         console.log(response);
       },
-      (err) => {
+      (err: unknown) => {
         coldTime.value = 0;
-        ElMessage.error('Email address is invalid or already registered');
+        ElMessage.error("Email address is invalid or already registered");
         console.log(err);
-      });
+      }
+  );
 }
 
-function register() {
-  formRef.value.validate(
-      (valid) => {
-        if (valid) {
-          post(
-              '/api/auth/register',
-              { ...form },
-              () => {
-                ElMessage.success('Registration successfully!')
-                router.push('/')
-              },
-              (err) => {
-                ElMessage.error('Please check your information and try again.')
-                console.log(err)
-              }
-          )
-        }
-      }
-  )
+function register(): void {
+  formRef.value?.validate((valid: boolean) => {
+    if (valid) {
+      post(
+          "/api/auth/register",
+          {...form},
+          () => {
+            ElMessage.success("Registration successfully!");
+            router.push("/");
+          },
+          (err: unknown) => {
+            ElMessage.error("Please check your information and try again.");
+            console.log(err);
+          }
+      );
+    }
+  });
 }
 
 </script>

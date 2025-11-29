@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import {logout} from ".//src/net";
-import router from ".//src/router/index.ts";
+import {logout} from "../api";
+import router from "../router/index.ts";
 
 function userLogout() {
   logout(() => {

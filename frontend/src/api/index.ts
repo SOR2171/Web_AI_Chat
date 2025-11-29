@@ -1,32 +1,12 @@
 import axios from 'axios'
 import { ElMessage } from "element-plus";
-
-// --- Type Definitions ---
-
-// Structure of the object stored in Local/Session Storage
-interface AuthStruct {
-    token: string;
-    expire: number;
-}
-
-// Standard Backend Response Wrapper
-interface ApiResponse<T = any> {
-    code: number;
-    message: string;
-    data: T;
-}
-
-// Callback Types
-type SuccessCallback<T = any> = (data: T) => void;
-type FailureCallback = (message: string, code: number, url: string) => void;
-type ErrorCallback = (err: any) => void;
-
-// Specific type for Login Response based on usage in login() function
-interface LoginResponse {
-    token: string;
-    expire: number;
-    username: string;
-}
+import type {
+    ApiResponse,
+    AuthStruct,
+    FailureCallback,
+    LoginResponse,
+    SuccessCallback
+} from "../interfaces/ApiTypes.ts";
 
 // --- Constants & Defaults ---
 
