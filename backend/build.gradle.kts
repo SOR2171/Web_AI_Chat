@@ -7,7 +7,7 @@ plugins {
 
 group = "com.github.sor2171"
 version = "1.0.0"
-description = "backend"
+description = "Web_AI_Chat-backend"
 
 java {
     toolchain {
@@ -34,9 +34,12 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.boot:spring-boot-starter-web")
+    implementation("org.springframework.boot:spring-boot-starter-webflux")
     implementation("com.alibaba.fastjson2:fastjson2:2.0.32")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
+    implementation("org.springframework.boot:spring-boot-starter-actuator")
     runtimeOnly("com.mysql:mysql-connector-j")
     annotationProcessor("org.projectlombok:lombok")
     testImplementation("org.springframework.boot:spring-boot-starter-test")

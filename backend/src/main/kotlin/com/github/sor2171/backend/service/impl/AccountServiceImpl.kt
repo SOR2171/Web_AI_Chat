@@ -22,17 +22,10 @@ import java.util.concurrent.TimeUnit
 
 @Service
 class AccountServiceImpl(
-    @Resource
-    val utils: FlowUtils,
-
-    @Resource
-    val amqpTemplate: AmqpTemplate,
-
-    @Resource
-    val stringRedisTemplate: StringRedisTemplate,
-
-    @Resource
-    val encoder: PasswordEncoder
+    private val utils: FlowUtils,
+    private val amqpTemplate: AmqpTemplate,
+    private val stringRedisTemplate: StringRedisTemplate,
+    private val encoder: PasswordEncoder
 
 ) : ServiceImpl<AccountMapper, Account>(), AccountService {
 

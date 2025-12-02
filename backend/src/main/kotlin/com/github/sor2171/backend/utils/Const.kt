@@ -8,6 +8,8 @@ object Const {
     const val VERIFY_EMAIL_LIMIT = "verify:email:limit:"
     const val VERIFY_EMAIL_DATA = "verify:email:data:"
 
+    const val VERIFY_CHAT_LIMIT = "verify:chat:limit:"
+
     const val FLOW_LIMIT_COUNTER = "flow:counter:"
     const val FLOW_LIMIT_BLOCK = "flow:block:"
 }

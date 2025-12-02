@@ -1,16 +1,9 @@
 import axios from 'axios'
 import { ElMessage } from "element-plus";
-import type {
-    ApiResponse,
-    AuthStruct,
-    FailureCallback,
-    LoginResponse,
-    SuccessCallback
-} from "../interfaces/ApiTypes.ts";
+import type { ApiResponse, FailureCallback, LoginResponse, SuccessCallback } from "../interfaces/ApiTypes.ts";
+import { deleteAccessToken, storeAccessToken, takeAccessToken } from "../utils/JwtUtils.ts";
 
 // --- Constants & Defaults ---
-
-const authItemName = 'access_token';
 
 const defaultFailure: FailureCallback = (message, code, url) => {
     console.warn(`Request to ${url} failed ${code}: ${message}`);
@@ -22,51 +15,12 @@ const defaultError: ErrorCallback = (err) => {
     ElMessage.error('Something went wrong, please contact the administrator.');
 }
 
-// --- Token Management ---
-
-function takeAccessToken(): string | null {
-    const str = localStorage.getItem(authItemName) || sessionStorage.getItem(authItemName);
-    if (!str) return null;
-
-    try {
-        const authObject: AuthStruct = JSON.parse(str);
-        if (authObject.expire < Date.now()) {
-            deleteAccessToken();
-            ElMessage.warning('Your session has expired, please log in again.');
-            return null;
-        }
-        return authObject.token;
-    } catch (e) {
-        deleteAccessToken();
-        return null;
-    }
-}
-
-function storeAccessToken(token: string, remember: boolean, expire: number): void {
-    const authObject: AuthStruct = {
-        token: token,
-        expire: expire
-    };
-    const authString = JSON.stringify(authObject);
-    if (remember) {
-        localStorage.setItem(authItemName, authString);
-    } else {
-        sessionStorage.setItem(authItemName, authString);
-        localStorage.removeItem(authItemName);
-    }
-}
-
-function deleteAccessToken(): void {
-    localStorage.removeItem(authItemName);
-    sessionStorage.removeItem(authItemName);
-}
-
-function accessHeader(): Record<string, string> {
+const accessHeader = (): Record<string, string> => {
     const token = takeAccessToken();
     return token ? {
         'Authorization': 'Bearer ' + token
     } : {};
-}
+};
 
 // --- Internal Request Helpers ---
 

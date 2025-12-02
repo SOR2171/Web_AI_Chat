@@ -1,4 +1,4 @@
-interface AuthStruct {
+interface JwtAuth {
     token: string;
     expire: number;
 }
@@ -20,7 +20,7 @@ type FailureCallback = (message: string, code: number, url: string) => void;
 type ErrorCallback = (err: any) => void;
 
 export type {
-    AuthStruct,
+    JwtAuth,
     ApiResponse,
     LoginResponse,
     SuccessCallback,

@@ -1,5 +1,11 @@
 <script setup lang="ts">
 
+import { onMounted } from "vue";
+import { loginPageTokenInit } from "../utils/JwtUtils.ts";
+
+onMounted(() => {
+  loginPageTokenInit("")
+})
 </script>
 
 <template>

@@ -5,7 +5,6 @@ import com.github.sor2171.backend.entity.vo.response.AuthorizeVO
 import com.github.sor2171.backend.filter.JwtAuthorizeFilter
 import com.github.sor2171.backend.service.AccountService
 import com.github.sor2171.backend.utils.JwtUtils
-import jakarta.annotation.Resource
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.context.annotation.Bean
@@ -22,14 +21,9 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 @Configuration
 class SecurityConfiguration(
-    @Resource
-    val utils: JwtUtils,
-
-    @Resource
-    val jwtAuthorizeFilter: JwtAuthorizeFilter,
-
-    @Resource
-    val service: AccountService,
+    private val utils: JwtUtils,
+    private val jwtAuthorizeFilter: JwtAuthorizeFilter,
+    private val service: AccountService,
 ) {
     @Bean
     fun filterChain(http: HttpSecurity): SecurityFilterChain {
@@ -69,7 +63,7 @@ class SecurityConfiguration(
 
             val user = authentication.principal as UserDetails
             val account = service.findAccountByNameOrEmail(user.username)!!
-            val vo = account.toViewObject(
+            val vo = account.toAnotherObject(
                 AuthorizeVO::class,
                 mapOf(
                     "token" to utils.createJwt(user, account.id!!, account.username),

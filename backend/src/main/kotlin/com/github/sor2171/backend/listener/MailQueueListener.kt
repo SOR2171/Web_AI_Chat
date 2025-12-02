@@ -11,11 +11,10 @@ import org.springframework.stereotype.Component
 @Component
 @RabbitListener(queues = ["mail"])
 class MailQueueListener(
-    @param:Value("\${spring.mail.username}")
-    val username: String,
+    private val sender: MailSender,
 
-    @Resource
-    val sender: MailSender
+    @param:Value("\${spring.mail.username}")
+    private val username: String
 ) {
     @RabbitHandler
     fun senderMailMessage(data: Map<String, String>) {
@@ -29,12 +28,14 @@ class MailQueueListener(
                         + "\nThis code is valid for 3 minutes.",
                 email
             )
+
             "reset" -> createMailMessage(
                 "Password Reset Request",
                 "You requested a password reset. Your verification code is: $code"
                         + "\nThis code is valid for 3 minutes.",
                 email
             )
+
             else -> return
         }
         sender.send(message)

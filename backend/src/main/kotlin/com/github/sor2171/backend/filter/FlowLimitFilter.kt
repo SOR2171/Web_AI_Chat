@@ -14,12 +14,17 @@ import java.util.concurrent.TimeUnit
 
 @Component
 @Order(Const.FLOW_LIMIT_ORDER)
-class FlowLimitFilter : HttpFilter() {
+class FlowLimitFilter(
 
-    @Resource
-    private lateinit var template: StringRedisTemplate
+    private val template: StringRedisTemplate
 
-    override fun doFilter(request: ServletRequest?, response: ServletResponse?, chain: FilterChain?) {
+) : HttpFilter() {
+
+    override fun doFilter(
+        request: ServletRequest?,
+        response: ServletResponse?,
+        chain: FilterChain?
+    ) {
         val address = request!!.remoteAddr
         if (this.tryCount(address)) {
             chain!!.doFilter(request, response)
@@ -38,7 +43,8 @@ class FlowLimitFilter : HttpFilter() {
             if (template.hasKey(Const.FLOW_LIMIT_BLOCK + ip)) return false
 
             if (template.hasKey(Const.FLOW_LIMIT_COUNTER + ip)) {
-                val increment = template.opsForValue().increment(Const.FLOW_LIMIT_COUNTER + ip) ?: 0
+                val increment = template.opsForValue()
+                    .increment(Const.FLOW_LIMIT_COUNTER + ip) ?: 0
                 if (increment > 10) {
                     template.opsForValue().set(
                         Const.FLOW_LIMIT_BLOCK + ip,

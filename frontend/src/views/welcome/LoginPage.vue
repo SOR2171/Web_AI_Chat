@@ -24,7 +24,7 @@ const formRule = {
 function userLogin() {
   formRef.value.validate((valid:boolean) => {
     if (valid) {
-      login(form.username, form.password, form.remember, () => router.push('/index'))
+      login(form.username, form.password, form.remember, () => router.push('/home'))
     } else {
       console.log('error submit!')
       return false
