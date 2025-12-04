@@ -1,7 +1,6 @@
 package com.github.sor2171.backend.filter
 
 import com.github.sor2171.backend.utils.JwtUtils
-import jakarta.annotation.Resource
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse

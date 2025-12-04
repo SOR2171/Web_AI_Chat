@@ -1,40 +1,34 @@
 package com.github.sor2171.backend.config
 
-import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory
-import org.springframework.amqp.rabbit.connection.ConnectionFactory
-import org.springframework.amqp.rabbit.core.RabbitTemplate
+import com.github.sor2171.backend.utils.Const
+import org.springframework.amqp.core.*
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter
-import org.springframework.amqp.support.converter.MessageConverter
-import org.springframework.boot.autoconfigure.amqp.SimpleRabbitListenerContainerFactoryConfigurer
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
-
 @Configuration
 class RabbitConfiguration {
-    @Bean
-    fun jsonMessageConverter(): MessageConverter = Jackson2JsonMessageConverter()
-    
 
     @Bean
-    fun rabbitTemplate(
-        connectionFactory: ConnectionFactory,
-        messageConverter: MessageConverter
-    ): RabbitTemplate {
-        val rabbitTemplate = RabbitTemplate(connectionFactory)
-        rabbitTemplate.messageConverter = messageConverter
-        return rabbitTemplate
-    }
+    fun stJsonMessageConverter() = Jackson2JsonMessageConverter()
 
     @Bean
-    fun rabbitListenerContainerFactory(
-        configurer: SimpleRabbitListenerContainerFactoryConfigurer,
-        connectionFactory: ConnectionFactory?,
-        messageConverter: MessageConverter?
-    ): SimpleRabbitListenerContainerFactory {
-        val factory = SimpleRabbitListenerContainerFactory()
-        configurer.configure(factory, connectionFactory)
-        factory.setMessageConverter(messageConverter)
-        return factory
-    }
+    fun stQueue(): Queue = Queue(Const.ST_QUEUE_NAME, true)
+
+    @Bean
+    fun stExchange(): TopicExchange = TopicExchange(Const.ST_EXCHANGE_NAME)
+
+    @Bean
+    fun stBinding(stQueue: Queue, stExchange: TopicExchange): Binding =
+        BindingBuilder.bind(stQueue).to(stExchange).with(Const.ST_ROUTING_KEY)
+
+    @Bean
+    fun mailQueue(): Queue = Queue(Const.MAIL_QUEUE_NAME, true)
+
+    @Bean
+    fun mailExchange(): TopicExchange = TopicExchange(Const.MAIL_EXCHANGE_NAME)
+
+    @Bean
+    fun mailBinding(mailQueue: Queue, mailExchange: TopicExchange): Binding =
+        BindingBuilder.bind(mailQueue).to(mailExchange).with(Const.MAIL_ROUTING_KEY)
 }

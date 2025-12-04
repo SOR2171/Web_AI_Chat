@@ -1,6 +1,6 @@
 package com.github.sor2171.backend.listener
 
-import jakarta.annotation.Resource
+import com.github.sor2171.backend.utils.Const
 import org.springframework.amqp.rabbit.annotation.RabbitHandler
 import org.springframework.amqp.rabbit.annotation.RabbitListener
 import org.springframework.beans.factory.annotation.Value
@@ -9,7 +9,7 @@ import org.springframework.mail.SimpleMailMessage
 import org.springframework.stereotype.Component
 
 @Component
-@RabbitListener(queues = ["mail"])
+@RabbitListener(queues = [Const.MAIL_QUEUE_NAME])
 class MailQueueListener(
     private val sender: MailSender,
 

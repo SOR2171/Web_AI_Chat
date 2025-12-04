@@ -12,4 +12,12 @@ object Const {
 
     const val FLOW_LIMIT_COUNTER = "flow:counter:"
     const val FLOW_LIMIT_BLOCK = "flow:block:"
+
+    const val ST_QUEUE_NAME = "st.chat"
+    const val ST_EXCHANGE_NAME = "st.exchange"
+    const val ST_ROUTING_KEY = "st.request"
+
+    const val MAIL_QUEUE_NAME = "mail"
+    const val MAIL_EXCHANGE_NAME = "mail.exchange"
+    const val MAIL_ROUTING_KEY = "mail.send"
 }

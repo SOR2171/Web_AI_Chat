@@ -1,41 +1,44 @@
 package com.github.sor2171.backend.filter
 
 import com.github.sor2171.backend.utils.Const
-import jakarta.servlet.FilterChain
-import jakarta.servlet.http.HttpFilter
-import jakarta.servlet.http.HttpServletRequest
-import jakarta.servlet.http.HttpServletResponse
 import org.springframework.core.annotation.Order
-import org.springframework.stereotype.Component
 import org.springframework.http.HttpHeaders
+import org.springframework.http.HttpMethod
+import org.springframework.stereotype.Component
+import org.springframework.web.server.ServerWebExchange
+import org.springframework.web.server.WebFilter
+import org.springframework.web.server.WebFilterChain
+import reactor.core.publisher.Mono
 
 @Component
 @Order(Const.CORS_ORDER)
-class CorsFilter : HttpFilter() {
-    override fun doFilter(
-        request: HttpServletRequest?,
-        response: HttpServletResponse?,
-        chain: FilterChain?
-    ) {
-        this.addCorsHeader(request, response)
-        chain?.doFilter(request, response)
-    }
-    
-    private fun addCorsHeader(
-        request: HttpServletRequest?,
-        response: HttpServletResponse?
-        ) {
-        response?.addHeader(
-            HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN,
-            request?.getHeader(HttpHeaders.ORIGIN)
-        )
-        response?.addHeader(
+class CorsFilter : WebFilter {
+    override fun filter(exchange: ServerWebExchange, chain: WebFilterChain): Mono<Void> {
+        val request = exchange.request
+        val response = exchange.response
+
+        val origin = request.headers.getFirst(HttpHeaders.ORIGIN)
+        if (origin != null) {
+            response.headers.add(
+                HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN,
+                origin
+            )
+        }
+        response.headers.add(
             HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS,
             "GET, POST, PUT, DELETE, OPTIONS"
         )
-        response?.addHeader(
+        response.headers.add(
             HttpHeaders.ACCESS_CONTROL_ALLOW_HEADERS,
             "Authorization, Content-Type"
         )
+
+        // 处理预检请求直接返回 200
+        if (request.method == HttpMethod.OPTIONS) {
+            response.statusCode = org.springframework.http.HttpStatus.OK
+            return response.setComplete()
+        }
+
+        return chain.filter(exchange)
     }
 }

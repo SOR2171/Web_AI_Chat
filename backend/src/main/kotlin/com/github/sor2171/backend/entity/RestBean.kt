@@ -13,6 +13,10 @@ data class RestBean<T>(
             return RestBean(200, data, message)
         }
 
+        fun accept(data: Any? = null, message: String = "Success"): RestBean<Any?> {
+            return RestBean(202, data, message)
+        }
+
         fun <T> failure(code: Int = 401, data: T, message: String?): RestBean<T> {
             return RestBean(code, data, message ?: "Failure")
         }

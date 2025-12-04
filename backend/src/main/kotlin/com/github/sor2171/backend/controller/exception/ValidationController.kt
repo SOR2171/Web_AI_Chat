@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice
 @RestControllerAdvice
 class ValidationController {
 
-    private val log = LoggerFactory.getLogger(ValidationController::class.java)
+    private val log = LoggerFactory.getLogger(this::class.java)
     
     @ExceptionHandler(ValidationException::class)
     fun validationException(e: Exception): RestBean<out String?> {

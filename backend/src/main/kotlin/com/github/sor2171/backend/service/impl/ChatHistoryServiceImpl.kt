@@ -2,7 +2,6 @@ package com.github.sor2171.backend.service.impl
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.github.sor2171.backend.controller.exception.ValidationController
 import com.github.sor2171.backend.entity.RestBean
 import com.github.sor2171.backend.entity.bo.StOutput
 import com.github.sor2171.backend.entity.dto.ChatHistory
@@ -34,7 +33,7 @@ class ChatHistoryServiceImpl(
 
 ) : ServiceImpl<ChatHistoryMapper, ChatHistory>(), ChatHistoryService {
 
-    private val log = LoggerFactory.getLogger(ValidationController::class.java)
+    private val logger = LoggerFactory.getLogger(this::class.java)
 
     override fun getNewChatRequest(vo: ChatRequestVO, ip: String, token: String): String {
         synchronized(token.intern()) {
@@ -45,7 +44,7 @@ class ChatHistoryServiceImpl(
                         .unauthenticated("Invalid token. Please log in again.")
                         .toJsonString()
 
-                log.info(
+                logger.info(
                     "Get message from user " +
                             "(${utilsJ.toUser(decodedToken).username}): " +
                             "${vo.input.take(10)}..."
@@ -65,11 +64,11 @@ class ChatHistoryServiceImpl(
                 this.save(chatHistory)
                 vo.uuid = chatHistory.id.toString()
 
-//                rabbitTemplate.convertAndSend(
-//                    "st_chat",
-//                    vo.uuid,
-//                    vo
-//                )
+                rabbitTemplate.convertAndSend(
+                    Const.ST_EXCHANGE_NAME,
+                    Const.ST_ROUTING_KEY,
+                    vo
+                )
 
                 return RestBean.success(
                     mapOf("sessionId" to vo.uuid)
@@ -88,18 +87,20 @@ class ChatHistoryServiceImpl(
             "messages" to listOf(mapOf("role" to "User", "content" to vo.input)),
             "stream" to true
         )
+        
+        var fullContent = ""
 
         return stWebClient.post()
             .uri("/chat/completions")
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(stRequestBody)
             .retrieve()
-            .bodyToFlux(String::class.java) // 接收原始字符串流 (包含 data: [JSON])
+            .bodyToFlux(String::class.java)
             .flatMap { rawChunk ->
                 // 解析 SSE 格式，提取 JSON 字符串
                 rawChunk.split("\n")
                     .map { it.trim() }
-                    .filter { it != "[DONE]" } // 过滤结束标记
+                    .filter { it != "[DONE]" }
                     .map { jsonString ->
                         try {
                             // 尝试反序列化 JSON
@@ -110,7 +111,7 @@ class ChatHistoryServiceImpl(
                             // 提取核心内容并返回
                             chunk.choices.firstOrNull()?.delta?.content ?: ""
                         } catch (e: Exception) {
-                            log.error("Error parsing JSON chunk for session ${vo.uuid}: $jsonString", e)
+                            logger.error("Error parsing JSON chunk for session ${vo.uuid}: $jsonString", e)
                             ""
                         }
                     }
@@ -118,17 +119,21 @@ class ChatHistoryServiceImpl(
                     .let { Flux.fromIterable(it) } // 转换为 Flux<String>
             }
             .doOnNext { content ->
-                // 4. LOG: 打印处理后的流式内容
-                log.info("Session ${vo.uuid} - Stream received: ${content.take(20)}...")
+                fullContent += content
             }
             .doOnError { e ->
-                log.error("ST API stream failed for session ${vo.uuid}", e)
+                logger.error("ST API stream failed for session ${vo.uuid}", e)
+            }
+            .doOnComplete {
+                // 流结束后，更新数据库中的聊天记录
+                this.getById(vo.uuid.toInt())?.let {
+                    it.output = fullContent
+                    it.finish = Date()
+                    this.updateById(it)
+                    logger.info("Session ${vo.uuid} - Chat finished: ${fullContent.take(32)}...")
+                } ?: logger.warn("Session ${vo.uuid} - Chat history not found in DB.")
             }
     }
-
-    private fun findChatHistoryByChatId(id: Int) {}
-    private fun findChatHistoryByUserId(id: Int) {}
-    private fun existChatHistoryByUserId(id: Int) {}
 
     private fun verifyLimit(jwtToken: String): Boolean {
         val key = Const.VERIFY_CHAT_LIMIT + jwtToken
