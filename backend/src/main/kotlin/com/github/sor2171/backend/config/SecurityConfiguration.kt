@@ -30,7 +30,11 @@ class SecurityConfiguration(
         return http
             .authorizeHttpRequests {
                 it
-                    .requestMatchers("/api/auth/**", "/error").permitAll()
+                    .requestMatchers(
+                        "/api/auth/**",
+                        "/api/chat/**",
+                        "/error"
+                    ).permitAll()
                     .anyRequest().authenticated()
             }
             .formLogin {
@@ -56,7 +60,7 @@ class SecurityConfiguration(
     }
 
     val authenticationSuccessHandler =
-        { request: HttpServletRequest,
+        { _: HttpServletRequest,
           response: HttpServletResponse,
           authentication: Authentication ->
             response.contentType = "application/json;charset=UTF-8"
@@ -79,7 +83,7 @@ class SecurityConfiguration(
         }
 
     val authenticationFailureHandler =
-        { request: HttpServletRequest,
+        { _: HttpServletRequest,
           response: HttpServletResponse,
           exception: Exception ->
             response.contentType = "application/json;charset=UTF-8"
@@ -93,7 +97,7 @@ class SecurityConfiguration(
     val logoutSuccessHandler =
         { request: HttpServletRequest,
           response: HttpServletResponse,
-          authentication: Authentication? ->
+          _: Authentication? ->
             response.contentType = "application/json;charset=UTF-8"
             val writer = response.writer
             val authorization = request.getHeader(HttpHeaders.AUTHORIZATION)
@@ -103,7 +107,7 @@ class SecurityConfiguration(
         }
 
     val unauthenticatedHandler =
-        { request: HttpServletRequest,
+        { _: HttpServletRequest,
           response: HttpServletResponse,
           authException: AuthenticationException ->
             response.contentType = "application/json;charset=UTF-8"
@@ -115,7 +119,7 @@ class SecurityConfiguration(
         }
 
     val accessDeniedHandler =
-        { request: HttpServletRequest,
+        { _: HttpServletRequest,
           response: HttpServletResponse,
           accessDeniedException: AccessDeniedException ->
             response.contentType = "application/json;charset=UTF-8"

@@ -57,15 +57,15 @@ class SseEmitterBrokerService(
         // 注册回调：完成、超时、错误时移除
         emitter.onCompletion {
             emitters.remove(sessionId)
-            println("Emitter completed: $sessionId")
+            logger.info("Emitter completed: $sessionId")
         }
         emitter.onTimeout {
             emitter.complete()
             emitters.remove(sessionId)
-            println("Emitter timed out: $sessionId")
+            logger.info("Emitter timed out: $sessionId")
         }
         emitter.onError { e ->
-            println("Emitter error for $sessionId: ${e.message}")
+            logger.warn("Emitter error for $sessionId: ${e.message}")
             emitters.remove(sessionId)
         }
 
