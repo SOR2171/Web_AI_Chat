@@ -1,20 +1,58 @@
 package com.github.sor2171.backend.service
 
+import com.github.sor2171.backend.utils.Const
+import org.slf4j.LoggerFactory
+import org.springframework.data.redis.core.StringRedisTemplate
 import org.springframework.stereotype.Service
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter
 import java.io.IOException
 import java.util.concurrent.ConcurrentHashMap
 
 @Service
-class SseEmitterBrokerService {
+class SseEmitterBrokerService(
+    private val redisTemplate: StringRedisTemplate
+) {
     // 存储 Session ID -> SseEmitter 映射
     private val emitters: MutableMap<String, SseEmitter> = ConcurrentHashMap()
+    private val logger = LoggerFactory.getLogger(this::class.java)
 
-    // 设置超时时间，通常需要长一些以容纳聊天时间 (例如 30分钟)
-    private val EMITTER_TIMEOUT: Long = 30 * 60 * 1000L
+    fun registerSessionId(uuid: String) {
+        if (!existSessionId(uuid)) {
+            redisTemplate.opsForValue().set(
+                Const.VERIFY_CHAT_SESSION + uuid,
+                "1",
+                Const.EMITTER_TIMEOUT / 60 / 1000,
+                java.util.concurrent.TimeUnit.MINUTES
+            )
+        }
+    }
 
-    fun registerEmitter(sessionId: String): SseEmitter {
-        val emitter = SseEmitter(EMITTER_TIMEOUT)
+    fun existSessionId(uuid: String): Boolean = redisTemplate
+        .hasKey(Const.VERIFY_CHAT_SESSION + uuid)
+
+    fun invalidateEmitter(): SseEmitter {
+        return SseEmitter().apply {
+            try {
+                this.send(
+                    SseEmitter
+                        .event()
+                        .name("ERROR")
+                        .data("Invalid or expired session ID.")
+                )
+            } catch (e: Exception) {
+                logger.error("Failed to send error SSE message.", e)
+            } finally {
+                this.complete()
+            }
+        }
+    }
+
+    fun registerEmitter(sessionId: String): SseEmitter? {
+        if (!existSessionId(sessionId)) {
+            return null
+        }
+
+        val emitter = SseEmitter(Const.EMITTER_TIMEOUT)
 
         // 注册回调：完成、超时、错误时移除
         emitter.onCompletion {
@@ -58,5 +96,6 @@ class SseEmitterBrokerService {
     fun completeSession(sessionId: String) {
         emitters[sessionId]?.complete()
         // complete() 会触发 onCompletion 回调，自动移除
+        redisTemplate.opsForValue().decrement(Const.VERIFY_CHAT_SESSION + sessionId)
     }
 }

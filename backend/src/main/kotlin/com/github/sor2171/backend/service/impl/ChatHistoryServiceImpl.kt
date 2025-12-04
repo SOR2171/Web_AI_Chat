@@ -8,6 +8,7 @@ import com.github.sor2171.backend.entity.dto.ChatHistory
 import com.github.sor2171.backend.entity.vo.request.ChatRequestVO
 import com.github.sor2171.backend.mapper.ChatHistoryMapper
 import com.github.sor2171.backend.service.ChatHistoryService
+import com.github.sor2171.backend.service.SseEmitterBrokerService
 import com.github.sor2171.backend.utils.Const
 import com.github.sor2171.backend.utils.FlowUtils
 import com.github.sor2171.backend.utils.JwtUtils
@@ -18,7 +19,7 @@ import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.client.WebClient
 import reactor.core.publisher.Flux
-import java.util.Date
+import java.util.*
 
 @Service
 class ChatHistoryServiceImpl(
@@ -27,6 +28,7 @@ class ChatHistoryServiceImpl(
     private val rabbitTemplate: RabbitTemplate,
     private val stWebClient: WebClient,
     private val objectMapper: ObjectMapper,
+    private val brokerService: SseEmitterBrokerService,
 
     @param:Value("\${spring.st.limitTime}")
     private val chatLimitSeconds: Int
@@ -60,9 +62,11 @@ class ChatHistoryServiceImpl(
                         "finish" to null,
                     ) as Map<String, Any?>
                 )
+                
 
                 this.save(chatHistory)
                 vo.uuid = chatHistory.id.toString()
+                brokerService.registerSessionId(vo.uuid)
 
                 rabbitTemplate.convertAndSend(
                     Const.ST_EXCHANGE_NAME,

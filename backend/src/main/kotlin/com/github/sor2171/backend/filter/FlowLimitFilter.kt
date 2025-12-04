@@ -2,7 +2,6 @@ package com.github.sor2171.backend.filter
 
 import com.github.sor2171.backend.entity.RestBean
 import com.github.sor2171.backend.utils.Const
-import jakarta.annotation.Resource
 import jakarta.servlet.FilterChain
 import jakarta.servlet.ServletRequest
 import jakarta.servlet.ServletResponse
