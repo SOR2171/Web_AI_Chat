@@ -106,24 +106,24 @@ class ChatHistoryServiceImpl(
                     .map { it.trim() }
                     .filter { it != "[DONE]" }
                     .map { jsonString ->
-                        try {
-                            // 尝试反序列化 JSON
+                        return@map try {
                             val chunk = objectMapper.readValue(
                                 jsonString,
                                 StOutput::class.java
                             )
                             // 提取核心内容并返回
-                            chunk.choices.firstOrNull()?.delta?.content ?: ""
+                            "|" + (chunk.choices.firstOrNull()?.delta?.content ?: "")
                         } catch (e: Exception) {
                             logger.error("Error parsing JSON chunk for session ${vo.uuid}: $jsonString", e)
                             ""
                         }
                     }
-                    .filter { it.isNotEmpty() } // 过滤掉空字符串（如只有 role 变化的 chunk）
-                    .let { Flux.fromIterable(it) } // 转换为 Flux<String>
+                    .filter { it.isNotEmpty() }
+                    .let { Flux.fromIterable(it) }
             }
             .doOnNext { content ->
-                fullContent.append(content)
+                fullContent.append(content.substring(1))
+//                logger.info("Session ${vo.uuid} - Chunk: [${content.replace("\n", "\\n")}]")
             }
             .doOnError { e ->
                 logger.error("ST API stream failed for session ${vo.uuid}", e)

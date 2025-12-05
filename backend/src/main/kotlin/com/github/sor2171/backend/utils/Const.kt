@@ -22,5 +22,5 @@ object Const {
     const val MAIL_EXCHANGE_NAME = "mail.exchange"
     const val MAIL_ROUTING_KEY = "mail.send"
 
-    const val EMITTER_TIMEOUT = 30 * 60 * 1000L
+    const val EMITTER_TIMEOUT = 10 * 60 * 1000L
 }

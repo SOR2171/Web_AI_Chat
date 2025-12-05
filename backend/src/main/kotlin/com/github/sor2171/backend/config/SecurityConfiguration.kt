@@ -32,7 +32,7 @@ class SecurityConfiguration(
                 it
                     .requestMatchers(
                         "/api/auth/**",
-                        "/api/chat/**",
+                        "/api/chat/stream/**",
                         "/error"
                     ).permitAll()
                     .anyRequest().authenticated()
@@ -100,7 +100,9 @@ class SecurityConfiguration(
           _: Authentication? ->
             response.contentType = "application/json;charset=UTF-8"
             val writer = response.writer
-            val authorization = request.getHeader(HttpHeaders.AUTHORIZATION)
+            val authorization = request
+                .getHeader(HttpHeaders.AUTHORIZATION)
+                .substring("Bearer ".length)
             if (utils.invalidateJwt(authorization))
                 writer.write(RestBean.success().toJsonString())
             else writer.write(RestBean.logoutFailed().toJsonString())

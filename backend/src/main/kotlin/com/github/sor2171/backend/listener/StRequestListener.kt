@@ -10,13 +10,12 @@ import org.springframework.stereotype.Component
 
 
 @Component
-class STRequestListener(
+class StRequestListener(
     private val chatService: ChatHistoryService,
     private val brokerService: SseEmitterBrokerService // 注入 SseEmitter Broker
 ) {
     private val logger = LoggerFactory.getLogger(this::class.java)
 
-    // Listener 线程现在可以是非阻塞的，因为它只负责启动 Flux
     @RabbitListener(queues = [Const.ST_QUEUE_NAME])
     fun handleChatRequest(request: ChatRequestVO) {
         logger.info("Listener starting async stream for session ${request.uuid}")

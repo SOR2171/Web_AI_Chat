@@ -1,12 +1,21 @@
 import axios from 'axios'
 import { ElMessage } from "element-plus";
-import type { ApiResponse, FailureCallback, LoginResponse, SuccessCallback } from "../interfaces/ApiTypes.ts";
+import type {
+    ApiResponse,
+    ChatResponse,
+    FailureCallback,
+    LoginResponse,
+    SuccessCallback
+} from "../interfaces/ApiTypes.ts";
 import { deleteAccessToken, storeAccessToken, takeAccessToken } from "../utils/JwtUtils.ts";
+import router from "../router";
 
 // --- Constants & Defaults ---
 
+const chatStreamURL = `${ axios.defaults.baseURL }/api/chat/stream`;
+
 const defaultFailure: FailureCallback = (message, code, url) => {
-    console.warn(`Request to ${url} failed ${code}: ${message}`);
+    console.warn(`Request to ${ url } failed ${ code }: ${ message }`);
     ElMessage.warning('Something went wrong: ' + message);
 }
 
@@ -32,8 +41,8 @@ function internalPost<T>(
     failure: FailureCallback = defaultFailure,
     error: ErrorCallback = defaultError
 ): void {
-    axios.post<ApiResponse<T>>(url, data, { headers: header })
-        .then(({ data }) => {
+    axios.post<ApiResponse<T>>(url, data, {headers: header})
+        .then(({data}) => {
             if (data.code === 200) {
                 success(data.data);
             } else {
@@ -50,8 +59,8 @@ function internalGet<T>(
     failure: FailureCallback = defaultFailure,
     error: ErrorCallback = defaultError
 ): void {
-    axios.get<ApiResponse<T>>(url, { headers: header })
-        .then(({ data }) => {
+    axios.get<ApiResponse<T>>(url, {headers: header})
+        .then(({data}) => {
             if (data.code === 200) {
                 success(data.data);
             } else {
@@ -114,7 +123,7 @@ function login(
         },
         (data) => {
             storeAccessToken(data.token, remember, data.expire);
-            ElMessage.success(`Login successfully! Welcome back, ${data.username}`);
+            ElMessage.success(`Login successfully! Welcome back, ${ data.username }`);
             success(data);
         }
     );
@@ -129,10 +138,32 @@ function logout(
         () => {
             deleteAccessToken();
             ElMessage.success('Logout successfully!');
+            router.push('/');
             success();
         },
         failure
     );
 }
 
-export { get, post, login, logout };
+function chatRequest(
+    prompt: string,
+    success: SuccessCallback<ChatResponse>
+): void {
+    internalPost<ChatResponse>(
+        '/api/chat/request',
+        {
+            modelId: 1,
+            character: 1,
+            input: prompt,
+            uuid: ''
+        },
+        {
+            'Authorization': 'Bearer ' + takeAccessToken()
+        },
+        (data) => {
+            success(data);
+        }
+    );
+}
+
+export { get, post, login, logout, chatRequest, chatStreamURL };

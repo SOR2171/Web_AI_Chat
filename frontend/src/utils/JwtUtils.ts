@@ -41,22 +41,19 @@ function deleteAccessToken(): void {
     sessionStorage.removeItem(authItemName);
 }
 
-function loginPageTokenInit(_token:string): void {
+function loginPageTokenInit(): void {
     const storedToken = takeAccessToken();
     if (storedToken) {
         router.push('/home')
-        _token = storedToken;
     }
 }
 
-function homePageTokenInit(_token:string): void {
+function homePageTokenInit(): void {
     const storedToken = takeAccessToken();
     if (!storedToken) {
         router.push('/').then(() => {
             ElMessage.warning('Have not logged in yet, please log in.');
         });
-    } else {
-        _token = storedToken;
     }
 }
 
