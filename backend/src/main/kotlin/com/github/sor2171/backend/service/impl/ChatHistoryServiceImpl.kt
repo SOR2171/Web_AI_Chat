@@ -39,48 +39,48 @@ class ChatHistoryServiceImpl(
 
     override fun getNewChatRequest(vo: ChatRequestVO, ip: String, token: String): String {
         synchronized(token.intern()) {
-            if (this.verifyLimit(token)) {
-                val decodedToken = utilsJ.resolveJwt(token)
-                val userId = decodedToken?.let { utilsJ.toId(it) }
-                    ?: return RestBean
-                        .unauthenticated("Invalid token. Please log in again.")
-                        .toJsonString()
-
-                logger.info(
-                    "Get message from user " +
-                            "(${utilsJ.toUser(decodedToken).username}): " +
-                            "${vo.input.take(10)}..."
-                )
-
-                val chatHistory = vo.toAnotherObject(
-                    ChatHistory::class,
-                    mapOf(
-                        "id" to null,
-                        "userId" to userId,
-                        "output" to null,
-                        "begin" to Date(),
-                        "finish" to null,
-                    ) as Map<String, Any?>
-                )
-                
-
-                this.save(chatHistory)
-                vo.uuid = chatHistory.id.toString()
-                brokerService.registerSessionId(vo.uuid)
-
-                rabbitTemplate.convertAndSend(
-                    Const.ST_EXCHANGE_NAME,
-                    Const.ST_ROUTING_KEY,
-                    vo
-                )
-
-                return RestBean.success(
-                    mapOf("sessionId" to vo.uuid)
-                ).toJsonString()
+            if (!this.verifyLimit(token)) {
+                return RestBean
+                    .forbidden("Request limit exceeded. Please try again later.")
+                    .toJsonString()
             }
-            return RestBean
-                .forbidden("Request limit exceeded. Please try again later.")
-                .toJsonString()
+            
+            val decodedToken = utilsJ.resolveJwt(token)
+            val userId = decodedToken?.let { utilsJ.toId(it) }
+                ?: return RestBean
+                    .unauthenticated("Invalid token. Please log in again.")
+                    .toJsonString()
+
+            logger.info(
+                "Get message from user " +
+                        "(${utilsJ.toUser(decodedToken).username}): " +
+                        "${vo.input.take(10)}..."
+            )
+
+            val chatHistory = vo.toAnotherObject(
+                ChatHistory::class,
+                mapOf(
+                    "id" to null,
+                    "userId" to userId,
+                    "output" to null,
+                    "begin" to Date(),
+                    "finish" to null,
+                ) as Map<String, Any?>
+            )
+
+            this.save(chatHistory)
+            vo.uuid = chatHistory.id.toString()
+            brokerService.registerSessionId(vo.uuid)
+
+            rabbitTemplate.convertAndSend(
+                Const.ST_EXCHANGE_NAME,
+                Const.ST_ROUTING_KEY,
+                vo
+            )
+
+            return RestBean.success(
+                mapOf("sessionId" to vo.uuid)
+            ).toJsonString()
         }
     }
 
@@ -91,8 +91,8 @@ class ChatHistoryServiceImpl(
             "messages" to listOf(mapOf("role" to "User", "content" to vo.input)),
             "stream" to true
         )
-        
-        var fullContent = ""
+
+        val fullContent = StringBuilder()
 
         return stWebClient.post()
             .uri("/chat/completions")
@@ -123,7 +123,7 @@ class ChatHistoryServiceImpl(
                     .let { Flux.fromIterable(it) } // 转换为 Flux<String>
             }
             .doOnNext { content ->
-                fullContent += content
+                fullContent.append(content)
             }
             .doOnError { e ->
                 logger.error("ST API stream failed for session ${vo.uuid}", e)
@@ -131,10 +131,10 @@ class ChatHistoryServiceImpl(
             .doOnComplete {
                 // 流结束后，更新数据库中的聊天记录
                 this.getById(vo.uuid.toInt())?.let {
-                    it.output = fullContent
+                    it.output = fullContent.toString()
                     it.finish = Date()
                     this.updateById(it)
-                    logger.info("Session ${vo.uuid} - Chat finished: ${fullContent.take(32)}...")
+                    logger.info("Session ${vo.uuid} - Chat finished: ${fullContent.toString().take(32)}...")
                 } ?: logger.warn("Session ${vo.uuid} - Chat history not found in DB.")
             }
     }

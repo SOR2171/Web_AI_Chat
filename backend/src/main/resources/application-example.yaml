@@ -33,5 +33,6 @@ spring:
   
   
   st:
+    #baseUrl: http://address/v1
     limitTime: 30
     #apiKey: user-api-key
