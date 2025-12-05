@@ -153,7 +153,7 @@ function chatRequest(
         '/api/chat/request',
         {
             modelId: 1,
-            character: 1,
+            characterId: 1,
             input: prompt,
             uuid: ''
         },

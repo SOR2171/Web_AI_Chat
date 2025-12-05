@@ -26,13 +26,13 @@ spring:
       expire-hours: 168
   
   datasource:
-    url: jdbc:mysql://localhost:3306/kotlin_springboot
+    url: jdbc:mysql://localhost:3306/web_ai_chat
     #username: root
     #password: 123456
     driver-class-name: com.mysql.cj.jdbc.Driver
   
   
   st:
-    #baseUrl: http://address/v1
+    baseUrl: http://localhost:8003/v1
     limitTime: 30
     #apiKey: user-api-key
