@@ -25,7 +25,9 @@ const startColdTime = () => {
   timer = setInterval(() => {
     coldTime.value--
     if (coldTime.value <= 0) {
-      clearInterval(timer)
+      if (timer) {
+        clearInterval(timer);
+      }
       timer = null
       isCounting.value = false
       coldTime.value = 0
@@ -33,7 +35,7 @@ const startColdTime = () => {
   }, 1000)
 }
 
-const validatePasswordRepeat = (value: string, callback: (err?: Error) => void): void => {
+const validatePasswordRepeat = (_rule: any, value: string, callback: (err?: Error) => void): void => {
   if (value === "") {
     callback(new Error("Please repeat password"));
   } else if (value !== form.password) {
@@ -45,18 +47,18 @@ const validatePasswordRepeat = (value: string, callback: (err?: Error) => void):
 
 const rule = {
   password: [
-    { required: true, message: 'Please input password', trigger: 'blur' },
-    { min: 6, max: 20, message: 'Length should be 6 to 20', trigger: ['blur', 'change'] }
+    {required: true, message: 'Please input password', trigger: 'blur'},
+    {min: 6, max: 20, message: 'Length should be 6 to 20', trigger: ['blur', 'change']}
   ],
   passwordRepeat: [
-    { validator: validatePasswordRepeat, trigger: ['blur', 'change'] },
+    {validator: validatePasswordRepeat, trigger: ['blur', 'change']},
   ],
   email: [
-    { required: true, message: 'Please input email', trigger: 'blur' },
-    { type: 'email', message: 'Please input a valid email', trigger: ['blur', 'change'] }
+    {required: true, message: 'Please input email', trigger: 'blur'},
+    {type: 'email', message: 'Please input a valid email', trigger: ['blur', 'change']}
   ],
   code: [
-    { required: true, message: 'Please input verification code', trigger: 'blur' }
+    {required: true, message: 'Please input verification code', trigger: 'blur'}
   ]
 }
 
@@ -77,12 +79,11 @@ function askCode() {
 }
 
 function resetPassword() {
-  formRef.value.validate(
-      (valid) => {
+  formRef.value.validate((valid: boolean) => {
         if (valid) {
           post(
               '/api/auth/reset',
-              { ...form },
+              {...form},
               () => {
                 ElMessage.success('Reset successfully!')
                 router.push('/')
@@ -186,11 +187,11 @@ function resetPassword() {
         Reset
       </el-button>
     </div>
-    
+
     <el-divider>
       <span style="font-size: 10px;color: slategray">Wanna go back?</span>
     </el-divider>
-    
+
     <div style="margin-top: 24px" v-if="activeStep === 0">
       <el-button @click="router.push('/')" style="width: 280px" type="default">
         Go Back

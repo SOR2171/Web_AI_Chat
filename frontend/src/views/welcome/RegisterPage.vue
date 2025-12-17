@@ -35,7 +35,7 @@ const startColdTime = (): void => {
   }, 1000);
 };
 
-const validateUsername = (value: string, callback: (err?: Error) => void): void => {
+const validateUsername = (_rule: any, value: string, callback: (err?: Error) => void): void => {
   if (value === "") {
     callback(new Error("Please input username"));
   } else if (!/^[a-zA-Z0-9\u4e00-\u9fa5]+$/.test(value)) {
@@ -45,7 +45,7 @@ const validateUsername = (value: string, callback: (err?: Error) => void): void 
   }
 };
 
-const validatePasswordRepeat = (value: string, callback: (err?: Error) => void): void => {
+const validatePasswordRepeat = (_rule: any, value: string, callback: (err?: Error) => void): void => {
   if (value === "") {
     callback(new Error("Please repeat password"));
   } else if (value !== form.password) {
