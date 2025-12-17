@@ -12,10 +12,10 @@ import router from "../router";
 
 // --- Constants & Defaults ---
 
-const chatStreamURL = `${ axios.defaults.baseURL }/api/chat/stream`;
+const chatStreamURL = `${axios.defaults.baseURL}/api/chat/stream`;
 
 const defaultFailure: FailureCallback = (message, code, url) => {
-    console.warn(`Request to ${ url } failed ${ code }: ${ message }`);
+    console.warn(`Request to ${url} failed ${code}: ${message}`);
     ElMessage.warning('Something went wrong: ' + message);
 }
 
@@ -41,8 +41,8 @@ function internalPost<T>(
     failure: FailureCallback = defaultFailure,
     error: ErrorCallback = defaultError
 ): void {
-    axios.post<ApiResponse<T>>(url, data, {headers: header})
-        .then(({data}) => {
+    axios.post<ApiResponse<T>>(url, data, { headers: header })
+        .then(({ data }) => {
             if (data.code === 200) {
                 success(data.data);
             } else {
@@ -59,8 +59,8 @@ function internalGet<T>(
     failure: FailureCallback = defaultFailure,
     error: ErrorCallback = defaultError
 ): void {
-    axios.get<ApiResponse<T>>(url, {headers: header})
-        .then(({data}) => {
+    axios.get<ApiResponse<T>>(url, { headers: header })
+        .then(({ data }) => {
             if (data.code === 200) {
                 success(data.data);
             } else {
@@ -123,26 +123,17 @@ function login(
         },
         (data) => {
             storeAccessToken(data.token, remember, data.expire);
-            ElMessage.success(`Login successfully! Welcome back, ${ data.username }`);
+            ElMessage.success(`Login successfully! Welcome back, ${data.username}`);
             success(data);
         }
     );
 }
 
-function logout(
-    success: () => void,
-    failure: FailureCallback = defaultFailure
-): void {
-    get<void>(
-        '/api/auth/logout',
-        () => {
-            deleteAccessToken();
-            ElMessage.success('Logout successfully!');
-            router.push('/');
-            success();
-        },
-        failure
-    );
+function logout(success: () => void): void {
+    deleteAccessToken();
+    ElMessage.success('Logout successfully!');
+    router.push('/');
+    success();
 }
 
 function chatRequest(
