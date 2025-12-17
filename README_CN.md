@@ -40,5 +40,6 @@ client = OpenAI(
 
 #### 不同之处
 
-1.  数据库：在 `application-example.yaml` 和 `database.sql` 文件中，数据库名称已更改为 `web_ai_chat`。
-2.  前端：你需要找到一张背景图片，并将其放置在 `./frontend/src/assets/welcome-image.png` 路径下。
+1. 数据库：在 `application-example.yaml` 和 `database.sql` 文件中，数据库名称已更改为 `web_ai_chat`。
+2. 前端：你需要找到一张背景图片，并将其放置在 `./frontend/src/assets/welcome-image.png` 路径下。
+3. 后端：你需要在 `src/main/resources/` 中添加 `keystore.p12` 文件，以启用 HTTPS 支持。当然，你也可以选择忽略 `application-example.yaml` 中的 HTTPS 配置。
