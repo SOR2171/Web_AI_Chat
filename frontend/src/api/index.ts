@@ -12,7 +12,7 @@ import router from "../router";
 
 // --- Constants & Defaults ---
 
-const chatStreamURL = `${axios.defaults.baseURL}/api/chat/stream`;
+const chatStreamURL = `/api/chat/stream`;
 
 const defaultFailure: FailureCallback = (message, code, url) => {
     console.warn(`Request to ${url} failed ${code}: ${message}`);

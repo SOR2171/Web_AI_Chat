@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.client.WebClient
+import org.springframework.web.reactive.function.client.bodyToFlux
 import reactor.core.publisher.Flux
 import java.util.*
 
@@ -88,7 +89,7 @@ class ChatHistoryServiceImpl(
         // 构造发送给 ST 的标准 OpenAI 兼容请求体
         val stRequestBody = mapOf(
             "model" to vo.modelId,
-            "messages" to listOf(mapOf("role" to "User", "content" to vo.input)),
+            "messages" to listOf(mapOf("role" to "user", "content" to vo.input)),
             "stream" to true
         )
 
@@ -99,7 +100,7 @@ class ChatHistoryServiceImpl(
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(stRequestBody)
             .retrieve()
-            .bodyToFlux(String::class.java)
+            .bodyToFlux<String>()
             .flatMap { rawChunk ->
                 // 解析 SSE 格式，提取 JSON 字符串
                 rawChunk.split("\n")
