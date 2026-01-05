@@ -1,35 +1,48 @@
-interface JwtAuth {
+export interface JwtAuth {
     token: string;
     expire: number;
 }
 
-interface ApiResponse<T = any> {
+export interface ApiResponse<T = any> {
     code: number;
     message: string;
     data: T;
 }
 
-interface LoginResponse {
+export interface LoginResponse {
     token: string;
     expire: number;
     username: string;
 }
 
-interface ChatResponse {
+export interface ChatResponse {
     sessionId: string
 }
 
-
-type SuccessCallback<T = any> = (data: T) => void;
-type FailureCallback = (message: string, code: number, url: string) => void;
-type ErrorCallback = (err: any) => void;
-
-export type {
-    JwtAuth,
-    ApiResponse,
-    LoginResponse,
-    ChatResponse,
-    SuccessCallback,
-    FailureCallback,
-    ErrorCallback
+export interface ChatMessage {
+    role: 'user' | 'assistant';
+    content: string;
+    id?: string;
 }
+
+export interface HistoryRequest {
+    limit: number;
+}
+
+// 假设后端历史记录返回的格式
+export interface HistoryResponse {
+    list: ChatMessage[];
+}
+
+// 更新 ChatRequest Payload 接口 (仅供参考，axios调用时使用any或此接口)
+export interface ChatRequestPayload {
+    modelId: number;
+    characterId: number;
+    messages: ChatMessage[];
+    uuid: string;
+}
+
+
+export type SuccessCallback<T = any> = (data: T) => void;
+export type FailureCallback = (message: string, code: number, url: string) => void;
+export type ErrorCallback = (err: any) => void;

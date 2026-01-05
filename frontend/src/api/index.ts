@@ -1,9 +1,9 @@
 import axios from 'axios'
 import { ElMessage } from "element-plus";
 import type {
-    ApiResponse,
+    ApiResponse, ChatMessage,
     ChatResponse,
-    FailureCallback,
+    FailureCallback, HistoryResponse,
     LoginResponse,
     SuccessCallback
 } from "../interfaces/ApiTypes.ts";
@@ -136,16 +136,28 @@ function logout(success: () => void): void {
     success();
 }
 
+/**
+ * 发送聊天请求 (修改版)
+ * 将 prompt 改为 messages 列表
+ */
+
 function chatRequest(
-    prompt: string,
+    messages: ChatMessage[], // 接收完整上下文
     success: SuccessCallback<ChatResponse>
 ): void {
+    // 构建符合后端要求的 payload
+    // 去除 id 等前端专用字段，只保留 role 和 content
+    const payloadMessages = messages.map(m => ({
+        role: m.role,
+        content: m.content
+    }));
+
     internalPost<ChatResponse>(
         '/api/chat/request',
         {
             modelId: 1,
             characterId: 1,
-            input: prompt,
+            messages: payloadMessages, // 这里变成了列表
             uuid: ''
         },
         {
@@ -157,4 +169,23 @@ function chatRequest(
     );
 }
 
-export { get, post, login, logout, chatRequest, chatStreamURL };
+/**
+ * 获取历史记录
+ */
+function fetchHistory(
+    limit: number,
+    success: SuccessCallback<HistoryResponse>,
+    failure: FailureCallback = defaultFailure,
+    error: ErrorCallback = defaultError
+): void {
+    // 假设后端接口为 POST /api/chat/history
+    post<HistoryResponse>(
+        '/api/chat/history',
+        { limit },
+        success,
+        failure,
+        error
+    );
+}
+
+export { get, post, login, logout, chatRequest, fetchHistory, chatStreamURL };
