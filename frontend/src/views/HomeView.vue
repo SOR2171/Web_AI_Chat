@@ -33,7 +33,7 @@ const connectSSE = (sessionId: string) => {
     eventSource.close();
   }
 
-  const sseUrl = `${ chatStreamURL }/${ sessionId }`;
+  const sseUrl = `${chatStreamURL}/${sessionId}`;
   eventSource = new EventSource(sseUrl);
 
   eventSource.onopen = () => {
@@ -48,7 +48,7 @@ const connectSSE = (sessionId: string) => {
       statusText.value = '流式传输完成。';
       handleStreamClose();
     } else if (data.startsWith('[ERROR]')) {
-      responseContent.value += `\n[系统错误: ${ data.substring(7) }]`;
+      responseContent.value += `\n[系统错误: ${data.substring(7)}]`;
       statusText.value = '传输错误。';
       handleStreamClose();
     } else {
@@ -90,11 +90,11 @@ const sendChatRequest = async () => {
   statusText.value = '发送请求中...';
 
   // 发送 POST 请求，获取后端生成的 sessionId
-  chatRequest(prompt.value, (data) => {
+  chatRequest([{ role: 'user', content: prompt.value, id: undefined }], (data) => {
     currentSessionId.value = data.sessionId
-    ElMessage.success(`Chat request successfully! (id: ${ currentSessionId.value })`);
+    ElMessage.success(`Chat request successfully! (id: ${currentSessionId.value})`);
     if (currentSessionId.value) {
-      statusText.value = `请求已入队 (${ currentSessionId.value })`;
+      statusText.value = `请求已入队 (${currentSessionId.value})`;
       connectSSE(currentSessionId.value);
     } else {
       ElMessage.error("chat request failed");
@@ -121,7 +121,7 @@ watch(responseContent, async (newValue) => {
   } catch (error) {
     renderedContent.value = newValue;
   }
-}, {immediate: true});
+}, { immediate: true });
 
 onUnmounted(() => {
   // 组件销毁时关闭连接

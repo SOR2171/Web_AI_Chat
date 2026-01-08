@@ -18,7 +18,7 @@ import {
 import { marked } from 'marked';
 import DOMPurify from "dompurify";
 import type { ChatMessage } from "../interfaces/ApiTypes";
-import { v4 as uuidv4 } from 'uuid'; // 如果没有安装 uuid，可以用 Date.now() + Math.random() 代替
+import { v4 as uuidV4 } from 'uuid'; // 如果没有安装 uuid，可以用 Date.now() + Math.random() 代替
 
 // --- 状态定义 ---
 
@@ -88,13 +88,10 @@ const handleThemeChange = (val: 'light' | 'dark' | 'auto') => {
 const loadHistory = () => {
   historyLoading.value = true;
   // 假设获取最近 50 条
-  fetchHistory(50, (data) => {
-    if (data && data.list) {
+  fetchHistory(50, (response) => {
+    if (response && response.data) {
       // 为每条历史消息补全前端需要的字段
-      messages.value = data.list.map(item => ({
-        ...item,
-        id: uuidv4()
-      }));
+      messages.value = response.data;
       scrollToBottom();
     }
     historyLoading.value = false;
@@ -150,7 +147,7 @@ const sendMessage = async () => {
   messages.value.push({
     role: 'user',
     content: userText,
-    id: uuidv4()
+    id: uuidV4()
   });
   scrollToBottom();
 
@@ -162,10 +159,10 @@ const sendMessage = async () => {
 
     if (currentSessionId.value) {
       // 3. 准备接收 AI 回复，先占位
-      const aiMsgId = uuidv4();
+      const aiMsgId = uuidV4();
       messages.value.push({
         role: 'assistant',
-        content: '', // 初始为空，等待流式填充
+        content: '',
         id: aiMsgId
       });
       scrollToBottom();
@@ -240,7 +237,7 @@ marked.setOptions({ breaks: true, gfm: true });
 </script>
 
 <template>
-  <div class="gemini-layout">
+  <div class="AI-layout">
 
     <aside :class="['sidebar', { 'collapsed': isSidebarCollapsed }]">
       <div class="sidebar-header">
@@ -249,7 +246,7 @@ marked.setOptions({ breaks: true, gfm: true });
             <component :is="isSidebarCollapsed ? Expand : Fold"/>
           </el-icon>
         </div>
-        <span v-if="!isSidebarCollapsed" class="logo-text">Gemini UI</span>
+        <span v-if="!isSidebarCollapsed" class="logo-text">Web AI Chat</span>
       </div>
 
       <div class="sidebar-content">
@@ -284,7 +281,7 @@ marked.setOptions({ breaks: true, gfm: true });
 
     <main class="main-area">
       <header class="main-header">
-        <div class="model-selector">Gemini Pro</div>
+        <div class="model-selector">AI_NAME</div>
       </header>
 
       <div class="chat-container" ref="messagesContainer">
@@ -305,7 +302,7 @@ marked.setOptions({ breaks: true, gfm: true });
           </div>
 
           <div class="message-content-wrapper">
-            <div class="message-sender">{{ msg.role === 'user' ? 'You' : 'Gemini' }}</div>
+            <div class="message-sender">{{ msg.role === 'user' ? 'You' : 'AI' }}</div>
             <div class="message-bubble">
               <div v-if="msg.role === 'assistant'" class="markdown-body" v-html="renderMarkdown(msg.content)"></div>
               <div v-else class="user-text">{{ msg.content }}</div>
@@ -344,7 +341,7 @@ marked.setOptions({ breaks: true, gfm: true });
           </button>
         </div>
         <div class="footer-note">
-          Gemini may display inaccurate info, including about people, so double-check its responses.
+          AI may display inaccurate info, including about people, so double-check its responses.
         </div>
       </div>
     </main>
@@ -399,7 +396,7 @@ marked.setOptions({ breaks: true, gfm: true });
   --border-color: #444746;
 }
 
-.gemini-layout {
+.AI-layout {
   display: flex;
   height: 100vh;
   width: 100vw;

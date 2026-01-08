@@ -1,10 +1,11 @@
 import axios from 'axios'
 import { ElMessage } from "element-plus";
 import type {
-    ApiResponse, ChatMessage,
+    ApiResponse,
+    ChatMessage,
     ChatResponse,
-    FailureCallback, HistoryResponse,
     LoginResponse,
+    FailureCallback,
     SuccessCallback
 } from "../interfaces/ApiTypes.ts";
 import { deleteAccessToken, storeAccessToken, takeAccessToken } from "../utils/JwtUtils.ts";
@@ -12,7 +13,7 @@ import router from "../router";
 
 // --- Constants & Defaults ---
 
-const chatStreamURL = `/api/chat/stream`;
+export const chatStreamURL = `/api/chat/stream`;
 
 const defaultFailure: FailureCallback = (message, code, url) => {
     console.warn(`Request to ${url} failed ${code}: ${message}`);
@@ -79,7 +80,7 @@ function internalGet<T>(
  * @param failure Callback on business failure (code != 200)
  * @param error Callback on network/system error
  */
-function get<T = any>(
+export function get<T = any>(
     url: string,
     success: SuccessCallback<T>,
     failure: FailureCallback = defaultFailure,
@@ -96,7 +97,7 @@ function get<T = any>(
  * @param failure Callback on business failure (code != 200)
  * @param error Callback on network/system error
  */
-function post<T = any>(
+export function post<T = any>(
     url: string,
     data: any,
     success: SuccessCallback<T>,
@@ -106,7 +107,7 @@ function post<T = any>(
     internalPost<T>(url, data, accessHeader(), success, failure, error);
 }
 
-function login(
+export function login(
     username: string,
     password: string,
     remember: boolean,
@@ -129,7 +130,7 @@ function login(
     );
 }
 
-function logout(success: () => void): void {
+export function logout(success: () => void): void {
     deleteAccessToken();
     ElMessage.success('Logout successfully!');
     router.push('/');
@@ -141,23 +142,16 @@ function logout(success: () => void): void {
  * 将 prompt 改为 messages 列表
  */
 
-function chatRequest(
+export function chatRequest(
     messages: ChatMessage[], // 接收完整上下文
     success: SuccessCallback<ChatResponse>
 ): void {
-    // 构建符合后端要求的 payload
-    // 去除 id 等前端专用字段，只保留 role 和 content
-    const payloadMessages = messages.map(m => ({
-        role: m.role,
-        content: m.content
-    }));
-
     internalPost<ChatResponse>(
         '/api/chat/request',
         {
             modelId: 1,
             characterId: 1,
-            messages: payloadMessages, // 这里变成了列表
+            messages: messages,
             uuid: ''
         },
         {
@@ -172,14 +166,14 @@ function chatRequest(
 /**
  * 获取历史记录
  */
-function fetchHistory(
+export function fetchHistory(
     limit: number,
-    success: SuccessCallback<HistoryResponse>,
+    success: SuccessCallback<ApiResponse<ChatMessage[]>>,
     failure: FailureCallback = defaultFailure,
     error: ErrorCallback = defaultError
 ): void {
     // 假设后端接口为 POST /api/chat/history
-    post<HistoryResponse>(
+    post<ApiResponse<ChatMessage[]>>(
         '/api/chat/history',
         { limit },
         success,
@@ -187,5 +181,3 @@ function fetchHistory(
         error
     );
 }
-
-export { get, post, login, logout, chatRequest, fetchHistory, chatStreamURL };
