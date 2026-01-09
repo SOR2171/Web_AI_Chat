@@ -151,7 +151,7 @@ export function chatRequest(
         {
             modelId: 1,
             characterId: 1,
-            messages: messages,
+            input: messages.toString(),
             uuid: ''
         },
         {

@@ -1,11 +1,11 @@
 package com.github.sor2171.backend.controller
 
+import com.github.sor2171.backend.entity.vo.request.ChatHistoryRequestVO
 import com.github.sor2171.backend.entity.vo.request.ChatRequestVO
 import com.github.sor2171.backend.service.ChatHistoryService
 import com.github.sor2171.backend.service.SseEmitterBrokerService
 import jakarta.servlet.http.HttpServletRequest
 import org.slf4j.LoggerFactory
-import org.springframework.http.HttpHeaders
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter
 
@@ -17,18 +17,22 @@ class StChatController(
 ) {
     private val logger = LoggerFactory.getLogger(this::class.java)
 
+    @PostMapping("/history")
+    fun fetchHistory(
+        @RequestBody vo: ChatHistoryRequestVO,
+        request: HttpServletRequest
+    ): String {
+        return chatService.getChatHistory(vo, request)
+    }
+
     // 1. 请求入口：接收请求并加入队列
     @PostMapping("/request")
-    fun sendChatRequest(@RequestBody vo: ChatRequestVO, request: HttpServletRequest): String {
+    fun sendChatRequest(
+        @RequestBody vo: ChatRequestVO,
+        request: HttpServletRequest
+    ): String {
         logger.info("Received request for session ${vo.uuid}")
-
-        return chatService.getNewChatRequest(
-            vo,
-            request.remoteAddr,
-            request
-                .getHeader(HttpHeaders.AUTHORIZATION)
-                .substring("Bearer ".length)
-        )
+        return chatService.getNewChatRequest(vo, request)
     }
 
     // 2. 响应出口：建立 SSE 连接
@@ -38,7 +42,7 @@ class StChatController(
         // 注册 SseEmitter 并返回。Spring MVC 将保持此 HTTP 连接打开。
         val emitter = brokerService.registerEmitter(sessionId)
             ?: return brokerService.invalidateEmitter()
-        
+
         logger.info("SSE Stream requested for session $sessionId")
 
         // 首次发送一个空消息或状态消息，以确保连接立即建立

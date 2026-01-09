@@ -3,11 +3,12 @@ package com.github.sor2171.backend.utils
 import com.auth0.jwt.JWT
 import com.auth0.jwt.JWTVerifier
 import com.auth0.jwt.algorithms.Algorithm
-import com.auth0.jwt.exceptions.SignatureVerificationException
 import com.auth0.jwt.interfaces.DecodedJWT
 import jakarta.annotation.Resource
+import jakarta.servlet.http.HttpServletRequest
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.redis.core.StringRedisTemplate
+import org.springframework.http.HttpHeaders
 import org.springframework.security.core.userdetails.User
 import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.stereotype.Component
@@ -29,7 +30,7 @@ class JwtUtils(
     val jwtVerifier: JWTVerifier = JWT.require(algorithm).build()
 ) {
     fun invalidateJwt(headerToken: String?): Boolean {
-        val token = this.convertToToken(headerToken) ?: return false
+        val token = this.headerToToken(headerToken) ?: return false
         try {
             val jwt = jwtVerifier.verify(token)
             val id = jwt.id
@@ -53,18 +54,18 @@ class JwtUtils(
     }
 
     private fun isInvalidToken(uuid: String): Boolean =
-        template.hasKey(Const.JWT_BLACK_LIST + uuid)
+        template.hasKey(Const.JWT_BLACK_LIST + uuid) ?: false
 
     fun resolveJwt(headerToken: String?): DecodedJWT? {
-        val token = convertToToken(headerToken) ?: return null
+        val token = headerToToken(headerToken) ?: return null
         try {
             val decodedJWT = jwtVerifier.verify(token)
             if (this.isInvalidToken(decodedJWT.id)) return null
             val expiresAt = decodedJWT.expiresAt
-            
+
             return if (Date().after(expiresAt)) null
             else decodedJWT
-            
+
         } catch (e: Exception) {
             println(e.message)
             return null
@@ -97,8 +98,17 @@ class JwtUtils(
             .authorities(*(claims["authorities"]!!.asArray(String::class.java)))
             .build()
     }
+    
+    
+    fun tokenToUserOrNull(token: String): UserDetails?  =
+        resolveJwt(token)?.let { toUser(it) }
 
-    fun toId(jwt: DecodedJWT) = jwt.claims["id"]?.asInt() ?: -1
+    fun toIdOrNull(jwt: DecodedJWT) = jwt.claims["id"]?.asInt()
+
+    fun toId(jwt: DecodedJWT) = toIdOrNull(jwt) ?: -1
+
+    fun tokenToIdOrNull(token: String): Int? =
+        resolveJwt(token)?.let { toId(it) }
 
     fun expiresTime(): Date {
         val cal = Calendar.getInstance()
@@ -106,6 +116,9 @@ class JwtUtils(
         return cal.time
     }
 
-    fun convertToToken(headerToken: String?): String? =
-        headerToken?.replace("Bearer ", "")
+    fun headerToToken(header: String?): String? =
+        header?.substring("Bearer ".length)
+
+    fun requestToToken(request: HttpServletRequest): String? =
+        headerToToken(request.getHeader(HttpHeaders.AUTHORIZATION))
 }
