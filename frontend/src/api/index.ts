@@ -168,14 +168,14 @@ export function chatRequest(
  */
 export function fetchHistory(
     limit: number,
-    success: SuccessCallback<ApiResponse<ChatMessage[]>>,
+    success: SuccessCallback<ChatMessage[]>,
     failure: FailureCallback = defaultFailure,
     error: ErrorCallback = defaultError
 ): void {
-    // 假设后端接口为 POST /api/chat/history
-    post<ApiResponse<ChatMessage[]>>(
+    // 后端接口为 POST /api/chat/history
+    post<ChatMessage[]>(
         '/api/chat/history',
-        { limit },
+        { limit: limit },
         success,
         failure,
         error

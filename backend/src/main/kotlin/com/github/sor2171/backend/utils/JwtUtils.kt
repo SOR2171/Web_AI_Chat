@@ -98,17 +98,14 @@ class JwtUtils(
             .authorities(*(claims["authorities"]!!.asArray(String::class.java)))
             .build()
     }
-    
-    
-    fun tokenToUserOrNull(token: String): UserDetails?  =
-        resolveJwt(token)?.let { toUser(it) }
 
     fun toIdOrNull(jwt: DecodedJWT) = jwt.claims["id"]?.asInt()
 
     fun toId(jwt: DecodedJWT) = toIdOrNull(jwt) ?: -1
 
     fun tokenToIdOrNull(token: String): Int? =
-        resolveJwt(token)?.let { toId(it) }
+        resolveJwt(token)
+            ?.let { toId(it) }
 
     fun expiresTime(): Date {
         val cal = Calendar.getInstance()
@@ -119,6 +116,12 @@ class JwtUtils(
     fun headerToToken(header: String?): String? =
         header?.substring("Bearer ".length)
 
-    fun requestToToken(request: HttpServletRequest): String? =
-        headerToToken(request.getHeader(HttpHeaders.AUTHORIZATION))
+    fun requestToHeader(request: HttpServletRequest): String? = 
+        request.getHeader(HttpHeaders.AUTHORIZATION)
+
+    fun requestToId(request: HttpServletRequest): Int? {
+        val headerToken = requestToHeader(request) ?: return null
+        val jwt = resolveJwt(headerToken) ?: return null
+        return toIdOrNull(jwt)
+    }
 }

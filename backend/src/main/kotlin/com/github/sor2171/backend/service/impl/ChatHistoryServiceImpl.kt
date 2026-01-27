@@ -45,7 +45,7 @@ class ChatHistoryServiceImpl(
         vo: ChatHistoryRequestVO,
         request: HttpServletRequest
     ): String {
-        val userId = utilsJ.tokenToIdOrNull(utilsJ.requestToToken(request)!!)
+        val userId = utilsJ.requestToId(request)
             ?: return RestBean
                 .unauthenticated("Invalid token. Please log in again.")
                 .toJsonString()
@@ -62,22 +62,19 @@ class ChatHistoryServiceImpl(
         if (limit > 200) limit = 200
         limit /= 2
 
-        val results = baseMapper.selectList(
-            ktQuery() // 或者使用 KtQueryWrapper<ChatHistory>()
-                .eq(ChatHistory::userId, userId)
-                .isNotNull(ChatHistory::output)
-                .orderByDesc(ChatHistory::begin)
-                .last("LIMIT $limit")
-        ).asReversed()
+        val results = ktQuery()
+            .eq(ChatHistory::userId, userId)
+            .isNotNull(ChatHistory::output)
+            .orderByDesc(ChatHistory::begin)
+            .last("LIMIT $limit")
+            .list() // 直接调用 .list() 获取结果
+            .asReversed()
+        logger.info("User: $userId, get history size: ${results.size}")
 
-        val chatHistoryList = Array(limit * 2) { index ->
-            val isUser = index % 2 == 0
-            return@Array ChatHistoryResponseVO(
-                role = if (isUser) "user" else "assistant",
-                content = results[index / 2].let {
-                    if (isUser) it.input
-                    else it.output!!
-                }
+        val chatHistoryList = results.flatMap { res ->
+            listOf(
+                ChatHistoryResponseVO("user", res.input, res.id.toString()),
+                ChatHistoryResponseVO("assistant", res.output!!, res.id.toString())
             )
         }
 
@@ -90,23 +87,23 @@ class ChatHistoryServiceImpl(
         vo: ChatRequestVO,
         request: HttpServletRequest
     ): String {
-        val token = utilsJ.requestToToken(request)!!
+        val headerToken = utilsJ.requestToHeader(request)!!
 
-        synchronized(token.intern()) {
-            if (!this.verifyLimit(token)) {
+        synchronized(headerToken.intern()) {
+            if (!this.verifyLimit(headerToken)) {
                 return RestBean
                     .forbidden("Request limit exceeded. Please try again later.")
                     .toJsonString()
             }
 
-            val userId = utilsJ.tokenToIdOrNull(token)
+            val userId = utilsJ.tokenToIdOrNull(headerToken)
                 ?: return RestBean
                     .unauthenticated("Invalid token. Please log in again.")
                     .toJsonString()
 
             logger.info(
                 "Get message from user " +
-                        "(${utilsJ.tokenToUserOrNull(token)!!.username}): " +
+                        "(${utilsJ.toUser(utilsJ.resolveJwt(headerToken)!!).username}): " +
                         "${vo.input.take(10)}..."
             )
 
