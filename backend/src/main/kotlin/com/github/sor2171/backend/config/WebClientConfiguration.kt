@@ -17,7 +17,7 @@ class WebClientConfiguration(
     @Bean
     fun stWebClient(builder: WebClient.Builder): WebClient {
         return builder
-            // 指向 SillyTavern 的代理 API 地址 (例如: 8002 或 8003 端口)
+            // 指向 SillyTavern 的代理 API 地址
             .baseUrl(baseUrl)
             .defaultHeader("Authorization", "Bearer $apiKey")
             .build()

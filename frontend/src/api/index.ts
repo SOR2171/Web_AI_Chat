@@ -151,7 +151,12 @@ export function chatRequest(
         {
             modelId: 1,
             characterId: 1,
-            input: messages.toString(),
+            messages: messages.map((message) => {
+                return {
+                    role: message.role,
+                    content: message.content
+                }
+            }),
             uuid: ''
         },
         {

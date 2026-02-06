@@ -29,7 +29,7 @@ But if you use SillyTavern, you can straightly use all the characters in SillyTa
 
 - User registration and login
 - Chat history management
-- Support for multiple AI chat models
+- Support for multiple AI chat models (currently hardcoded in the backend)
 - ~~ChatBridge seems not supporting multi-character~~
 
 ---
@@ -42,4 +42,3 @@ This project is based on [Springboot-Vue3_Test](https://github.com/SOR2171/Sprin
 
 1. Database: In `application-example.yaml` and `database.sql`, the database name is changed to `web_ai_chat`
 2. Frontend: You need to find a background picture and put it in `./frontend/src/assets/welcome-image.png`.
-3. backend: You need to add the `keystore.p12` file in `src/main/resources/` to enable HTTPS support. Of course, you can also choose to ignore the HTTPS configuration in `application-example.yaml`.

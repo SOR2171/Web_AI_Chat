@@ -27,4 +27,3 @@ export interface ChatMessage {
 
 export type SuccessCallback<T = any> = (data: T) => void;
 export type FailureCallback = (message: string, code: number, url: string) => void;
-export type ErrorCallback = (err: any) => void;

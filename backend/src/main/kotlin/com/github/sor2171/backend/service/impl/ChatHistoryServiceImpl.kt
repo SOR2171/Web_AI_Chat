@@ -104,7 +104,7 @@ class ChatHistoryServiceImpl(
             logger.info(
                 "Get message from user " +
                         "(${utilsJ.toUser(utilsJ.resolveJwt(headerToken)!!).username}): " +
-                        "${vo.input.take(10)}..."
+                        "${vo.messages.take(10)}..."
             )
 
             val chatHistory = vo.toAnotherObject(
@@ -112,6 +112,7 @@ class ChatHistoryServiceImpl(
                 mapOf(
                     "id" to null,
                     "userId" to userId,
+                    "input" to vo.messages[vo.messages.size - 1].content,
                     "output" to null,
                     "begin" to Date(),
                     "finish" to null,
@@ -137,8 +138,16 @@ class ChatHistoryServiceImpl(
     override fun sendRequestAndHandleStream(vo: ChatRequestVO): Flux<String> {
         // 构造发送给 ST 的标准 OpenAI 兼容请求体
         val stRequestBody = mapOf(
-            "model" to vo.modelId,
-            "messages" to listOf(mapOf("role" to "user", "content" to vo.input)),
+            "model" to when (vo.modelId) {
+                1 -> "qwen3:0.6b"
+                else -> "qwen3:0.6b"
+            },
+            "messages" to vo.messages.map {
+                mapOf(
+                    "role" to it.role,
+                    "content" to it.content
+                )
+            },
             "stream" to true
         )
 
@@ -162,7 +171,12 @@ class ChatHistoryServiceImpl(
                                 StOutput::class.java
                             )
                             // 提取核心内容并返回
-                            "|" + (chunk.choices.firstOrNull()?.delta?.content ?: "")
+                            val originalChunk = chunk.choices.firstOrNull()?.delta?.content ?: ""
+                            if (originalChunk.isNotEmpty()) {
+                                "|$originalChunk"
+                            } else {
+                                ""
+                            }
                         } catch (e: Exception) {
                             logger.error("Error parsing JSON chunk for session ${vo.uuid}: $jsonString", e)
                             ""

@@ -28,7 +28,7 @@ class SseEmitterBrokerService(
     }
 
     fun existSessionId(uuid: String): Boolean = redisTemplate
-        .hasKey(Const.VERIFY_CHAT_SESSION + uuid)
+        .hasKey(Const.VERIFY_CHAT_SESSION + uuid) ?: false
 
     fun invalidateEmitter(): SseEmitter {
         return SseEmitter().apply {

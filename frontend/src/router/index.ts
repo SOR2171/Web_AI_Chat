@@ -17,19 +17,19 @@ const routes: Array<RouteRecordRaw> = [
                 path: '',
                 name: 'welcome-login',
                 component: () => import('../views/welcome/LoginPage.vue'),
-                meta: {title: 'Welcome - login'},
+                meta: { title: 'Welcome - login' },
             },
             {
                 path: 'register',
                 name: 'welcome-register',
                 component: () => import('../views/welcome/RegisterPage.vue'),
-                meta: {title: 'Welcome - register'},
+                meta: { title: 'Welcome - register' },
             },
             {
                 path: 'reset',
                 name: 'welcome-reset',
                 component: () => import('../views/welcome/ResetPage.vue'),
-                meta: {title: 'Welcome - reset'},
+                meta: { title: 'Welcome - reset' },
             }
         ]
     },
@@ -37,13 +37,7 @@ const routes: Array<RouteRecordRaw> = [
         path: '/home',
         name: 'home',
         component: () => import('../views/HomeView.vue'),
-        meta: {title: 'home'},
-    },
-    {
-        path: '/test',
-        name: 'test',
-        component: () => import('../views/test.vue'),
-        meta: {title: 'test'},
+        meta: { title: 'home' },
     }
 ]
 

@@ -4,7 +4,7 @@ import { ElMessage, ElMessageBox } from "element-plus";
 import { homePageTokenInit } from "../utils/JwtUtils";
 import { chatRequest, chatStreamURL, fetchHistory, logout } from '../api';
 import {
-  Menu as IconMenu,
+  Promotion,
   Setting,
   Delete,
   UserFilled,
@@ -13,7 +13,9 @@ import {
   Sunny,
   Monitor,
   Expand,
-  Fold
+  Fold,
+  SwitchButton,
+  RefreshRight
 } from "@element-plus/icons-vue";
 import { marked } from 'marked';
 import DOMPurify from "dompurify";
@@ -44,7 +46,6 @@ const messagesContainer = ref<HTMLElement | null>(null);
 onMounted(() => {
   homePageTokenInit();
   initTheme();
-  loadHistory();
 });
 
 onUnmounted(() => {
@@ -90,7 +91,7 @@ const loadHistory = () => {
   // 假设获取最近 50 条
   fetchHistory(50, (data) => {
     console.log(`历史记录加载: ${data.length}`)
-    
+
     if (data) {
       // 为每条历史消息补全前端需要的字段
       messages.value = data;
@@ -203,7 +204,7 @@ const connectSSE = (sessionId: string, targetMsgId: string) => {
         // 注意：有些后端在 SSE 中第一个字符可能是特殊标记，需根据实际情况处理
         // 原代码逻辑：if (data.length > 1) responseContent += data.substring(1);
         // 假设这里直接是内容：
-        const contentFragment = data.length > 1 ? data.substring(1) : data;
+        const contentFragment = data.length > 1 ? data.substring(1) : "";
         updateMessageContent(targetMsgId, contentFragment);
       }
     }
@@ -256,7 +257,7 @@ marked.setOptions({ breaks: true, gfm: true });
           <div class="history-list" v-loading="historyLoading">
             <div class="history-item" @click="loadHistory">
               <el-icon>
-                <IconMenu/>
+                <RefreshRight/>
               </el-icon>
               <span>重新加载历史 ({{ messages.length }})</span>
             </div>
@@ -273,7 +274,7 @@ marked.setOptions({ breaks: true, gfm: true });
         </div>
         <div class="sidebar-btn logout" @click="handleLogout">
           <el-icon>
-            <Fold/>
+            <SwitchButton/>
           </el-icon>
           <span v-if="!isSidebarCollapsed">退出登录</span>
         </div>
@@ -336,7 +337,7 @@ marked.setOptions({ breaks: true, gfm: true });
               @click="sendMessage"
           >
             <el-icon v-if="!isLoading">
-              <component :is="IconMenu"/>
+              <Promotion/>
             </el-icon>
             <span v-else class="loading-dot">...</span>
           </button>
