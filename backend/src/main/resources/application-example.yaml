@@ -31,8 +31,9 @@ spring:
     #password: 123456
     driver-class-name: com.mysql.cj.jdbc.Driver
   
-  
   st:
     baseUrl: http://localhost:8003/v1
     limitTime: 30
     #apiKey: user-api-key
+    model-list:
+      - qwen3:0.6b

@@ -12,7 +12,7 @@ class FlowUtils(
 ) {
     
     fun limitOnceCheck(key: String, blockTime: Int): Boolean {
-        if (template.hasKey(key)) {
+        if (template.hasKey(key) == true) {
             return false
         } else {
             template.opsForValue().set(

@@ -35,7 +35,9 @@ class ChatHistoryServiceImpl(
     private val brokerService: SseEmitterBrokerService,
 
     @param:Value("\${spring.st.limitTime}")
-    private val chatLimitSeconds: Int
+    private val chatLimitSeconds: Int,
+    @param:Value("\${spring.st.model-list}")
+    private val modelList: List<String>
 
 ) : ServiceImpl<ChatHistoryMapper, ChatHistory>(), ChatHistoryService {
 
@@ -138,10 +140,8 @@ class ChatHistoryServiceImpl(
     override fun sendRequestAndHandleStream(vo: ChatRequestVO): Flux<String> {
         // 构造发送给 ST 的标准 OpenAI 兼容请求体
         val stRequestBody = mapOf(
-            "model" to when (vo.modelId) {
-                1 -> "qwen3:0.6b"
-                else -> "qwen3:0.6b"
-            },
+            "model" to if (vo.modelId in 0..<(modelList.size))
+                modelList.last() else modelList[vo.modelId],
             "messages" to vo.messages.map {
                 mapOf(
                     "role" to it.role,
