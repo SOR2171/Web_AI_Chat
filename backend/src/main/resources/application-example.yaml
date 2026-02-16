@@ -35,5 +35,4 @@ spring:
     baseUrl: http://localhost:8003/v1
     limitTime: 30
     #apiKey: user-api-key
-    model-list:
-      - qwen3:0.6b
+    models: qwen3,gpt,Gemini

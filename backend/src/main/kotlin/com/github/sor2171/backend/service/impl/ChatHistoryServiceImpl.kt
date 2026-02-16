@@ -36,12 +36,13 @@ class ChatHistoryServiceImpl(
 
     @param:Value("\${spring.st.limitTime}")
     private val chatLimitSeconds: Int,
-    @param:Value("\${spring.st.model-list}")
-    private val modelList: List<String>
+    @param:Value("\${spring.st.models}")
+    private val models: String
 
 ) : ServiceImpl<ChatHistoryMapper, ChatHistory>(), ChatHistoryService {
 
     private val logger = LoggerFactory.getLogger(this::class.java)
+    private val modelList = models.split(",").map { it.trim() }
 
     override fun getChatHistory(
         vo: ChatHistoryRequestVO,
@@ -138,10 +139,11 @@ class ChatHistoryServiceImpl(
     }
 
     override fun sendRequestAndHandleStream(vo: ChatRequestVO): Flux<String> {
+        val model = if (vo.modelId !in modelList.indices)
+            modelList.last() else modelList[vo.modelId]
         // 构造发送给 ST 的标准 OpenAI 兼容请求体
         val stRequestBody = mapOf(
-            "model" to if (vo.modelId in 0..<(modelList.size))
-                modelList.last() else modelList[vo.modelId],
+            "model" to model,
             "messages" to vo.messages.map {
                 mapOf(
                     "role" to it.role,
